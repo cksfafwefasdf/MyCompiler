@@ -1,0 +1,12 @@
+G->P
+P->DS
+D->Lid;D|ept
+L->int|float
+S->id=E;|if(C)S|if(C)SelseS|while(C)S|SK
+K->S
+C->EB
+B->RE
+R->gt|lt|eq
+E->E+T|E-T|T
+T->F|T*F=|T/F
+F->(E)|id|int|float

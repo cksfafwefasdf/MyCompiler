@@ -1,0 +1,9 @@
+P->D
+D->DD|Tid(){B}|Tid(A){B}
+A->Tid|Tid,A
+B->BB|Tid;|id=E;|while(L){B}|if(L){B}|if(L){B}else{B}
+T->int|float
+E->EOE|-E|(E)|id|digit
+L->ERE|LandL|LorL|notL|(L)|true|false
+R->gt|lt|eq|neq
+O->+|-|*|/

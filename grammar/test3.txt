@@ -1,0 +1,5 @@
+S->TE
+E->+TE|ept
+T->FD
+D->*FD|ept
+F->(S)|id

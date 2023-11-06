@@ -1,0 +1,12 @@
+int main(int a,int b){
+    int d;
+    a=1;
+    if(a!=b){
+        1a=3+b;
+    }else{
+        while(a+<b){
+            a=a-b;
+        }
+    }
+}
+#
