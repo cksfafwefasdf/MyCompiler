@@ -9,6 +9,13 @@ bool is_Character(char c){return (c>='a'&&c<='z');}
 //是否是非终结符
 bool is_VType(char c){return (c>='A'&&c<='Z');}
 
+void outPutErr(const vector<pair<int,string>> &errs){
+    for(auto item:errs){
+        cerr<<"error in "<<item.first<<" row! "<<item.second<<endl;
+    }
+}
+
+
 int readDigit(string token){
     string res;
     int i=0;
@@ -55,7 +62,7 @@ void SLR1Analyzer::process(){
 void SLR1Analyzer::parseCode(const vector<string> &readBuffer){
     vector<string> status_stack;
     vector<string> token_stack;
-    vector<int> error_rows;
+    vector<pair<int,string>> error_rows;
     token_stack.push_back("$");
     status_stack.push_back("s0");
     int ip=0;
@@ -113,24 +120,27 @@ void SLR1Analyzer::parseCode(const vector<string> &readBuffer){
             cout<<"access!"<<endl;
             break;
         }else{
-            int err_row = errorHandle(ip,readBuffer);
+            pair<int,string> err_msg = errorHandle(ip,readBuffer,status_stack);
             //如果处理两次还不能把这个问题解决了，说明他是个难以解决的问题，终止分析
-            if(std::count(error_rows.begin(), error_rows.end(),err_row)>1){
+            if(std::count(error_rows.begin(), error_rows.end(),err_msg)>1){
                 error_rows.pop_back(); //把多余的那个弹出去
                 break;
             }
-            error_rows.push_back(err_row);
+            for(auto item:error_rows){
+                if(err_msg.first==item.first){
+                    outPutErr(error_rows);
+                    return;
+                }
+            }
+            error_rows.push_back(err_msg);
         }
     }
-
-    for(auto item:error_rows){
-        cerr<<"err in "<<item<<" row!"<<endl;
-    }
-
+    outPutErr(error_rows);
 }
 
-int SLR1Analyzer::errorHandle(int &ip,const vector<string> &readBuffer) {
+pair<int,string> SLR1Analyzer::errorHandle(int &ip,const vector<string> &readBuffer,const vector<string> &status_stack) {
     int linefeed_pos=0,row_num=0;
+    string err_msg;
     for(linefeed_pos=ip;linefeed_pos<readBuffer.size();linefeed_pos++){
         if(readBuffer[linefeed_pos]=="linefeed"){
             break;
@@ -142,9 +152,40 @@ int SLR1Analyzer::errorHandle(int &ip,const vector<string> &readBuffer) {
         }
     }
     row_num++;
+    string now_status = status_stack.back();
+    int status_num = readDigit(now_status);
+    //默认以第0个项目作为纠正项目
+    string right = closures[status_num][0*2+1];
+    int dot = right.find('.');
+    //如果dot在最后一位，说明当前式子已经规约完了，出现了多余的符号
+    if(dot==right.size()-1){
+        err_msg="redundant character "+readBuffer[ip];
+    }else{
+        if(is_VType(closures[status_num][0*2+1][dot+1])){
+            err_msg="expected "+readBuffer[ip];
+        }else{
+            int start = dot+1;
+            string token;
+            if(is_Character(closures[status_num][0*2+1][dot])){
+                while(start<closures[status_num][0*2+1].size()&&is_Character(closures[status_num][0*2+1][start])){
+                    token+=closures[status_num][0*2+1][start];
+                    start++;
+                }
+            }else{
+                token+=closures[status_num][0*2+1][start];
+            }
+            //如果就差最后一个字符就能规约成功了
+            if(start>=closures[status_num][0*2+1].size()-1){
+                err_msg="lack of  "+token;
+            }else{
+                err_msg="expected "+token;
+            }
+        }
+    }
+
     ip++;
-    //cerr<<"err in "<<row_num<<" row!"<<endl;
-    return row_num;
+    pair<int,string> ret(row_num,err_msg);
+    return ret;
 }
 
 void SLR1Analyzer::getTable() {

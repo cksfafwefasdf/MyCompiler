@@ -7,7 +7,7 @@ public:
     void getTable();
     void showTable() override;
     void parseCode(const std::vector<std::string> &readBuffer) override;
-    int errorHandle(int &ip,const std::vector<std::string> &readBuffer);
+    std::pair<int,std::string>  errorHandle(int &ip,const std::vector<std::string> &readBuffer,const std::vector<std::string> &status_stack);
 };
 
 #endif //MYCOMPAILER_SLR1ANALYZER_H
